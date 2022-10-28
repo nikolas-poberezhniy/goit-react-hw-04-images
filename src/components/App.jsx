@@ -1,11 +1,17 @@
 import { Component } from 'react';
-
+import { Searchbar } from './Searchbar/Searchbar';
 export class App extends Component {
   state = {};
 
-  async componentDidMount() {
+  querySubmit = e => {
+    e.preventDefault();
+    const searchQuery = e.target.inputField.value;
+    this.setState({ searchQuery });
+  };
+
+  componentDidUpdate(_, prevState) {
     fetch(
-      'https://pixabay.com/api/?key=29483810-e73a753bafa1cfe0ffde3d090&q=dog&page=1&per_page=12'
+      `https://pixabay.com/api/?key=29483810-e73a753bafa1cfe0ffde3d090&q=${this.state.searchQuery}&page=1&per_page=12`
     )
       .then(e => {
         return e.json();
@@ -15,17 +21,20 @@ export class App extends Component {
       });
   }
 
-  componentDidUpdate() {}
   render() {
     const { api } = this.state;
-
+    console.clear();
     return (
-      <div>
-        {api &&
-          api[0].map(({ id, previewURL }) => {
-            return <img key={id} src={previewURL} alt={id}></img>;
-          })}
-      </div>
+      <>
+        <Searchbar onSubmit={this.querySubmit} />
+        {api && (
+          <div>
+            {api[0].map(({ id, previewURL }) => {
+              return <img key={id} src={previewURL} alt={id}></img>;
+            })}
+          </div>
+        )}
+      </>
     );
   }
 }
