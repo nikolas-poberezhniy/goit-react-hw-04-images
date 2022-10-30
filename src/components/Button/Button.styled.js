@@ -9,4 +9,7 @@ export const Button = styled.button`
   border-radius: 5px;
   color: white;
   background-color: #0288d1;
+  max-width: 100px;
+  margin-left: 50%;
+  transform: translate(-50%, 0);
 `;
