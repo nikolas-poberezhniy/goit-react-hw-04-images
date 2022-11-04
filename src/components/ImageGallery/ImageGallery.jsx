@@ -4,13 +4,13 @@ import PropTypes from 'prop-types';
 export const ImageGallery = ({ arrResponse, onClick }) => {
   return (
     <ImageGalleryList>
-      {arrResponse.map(({ id, largeImageURL, webformatURL }) => {
+      {arrResponse.map(({ id, largeImageURL, webformatURL, tags }) => {
         return (
           <ImageGalleryItem
             key={id}
             src={webformatURL}
             onClick={onClick}
-            alt={id}
+            alt={tags}
             largeImageURL={largeImageURL}
           />
         );

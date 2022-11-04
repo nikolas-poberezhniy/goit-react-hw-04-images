@@ -1,38 +1,37 @@
 import { Backdrop, ModalField } from './Modal.styled';
-import { Component } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 
 const modalRoot = document.querySelector('#modal-root');
 
-export class Modal extends Component {
-  componentDidMount() {
-    window.addEventListener('keydown', this.onEscape);
-  }
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.onEscape);
-  }
-  handleBackdropClick = ({ currentTarget, target }) => {
+export function Modal({ image, onClose }) {
+  useEffect(() => {
+    window.addEventListener('keydown', onEscape);
+    return () => {
+      window.removeEventListener('keydown', onEscape);
+    };
+  });
+
+  const handleBackdropClick = ({ currentTarget, target }) => {
     if (currentTarget === target) {
-      this.props.onClose();
+      onClose();
     }
   };
-  onEscape = ({ key }) => {
+  const onEscape = ({ key }) => {
     if (key === 'Escape') {
-      this.props.onClose();
+      onClose();
     }
   };
 
-  render() {
-    return createPortal(
-      <Backdrop onClick={this.handleBackdropClick}>
-        <ModalField>
-          <img alt="modal view" src={this.props.image} />
-        </ModalField>
-      </Backdrop>,
-      modalRoot
-    );
-  }
+  return createPortal(
+    <Backdrop onClick={handleBackdropClick}>
+      <ModalField>
+        <img alt="modal view" src={image} />
+      </ModalField>
+    </Backdrop>,
+    modalRoot
+  );
 }
 
 Modal.propTypes = {

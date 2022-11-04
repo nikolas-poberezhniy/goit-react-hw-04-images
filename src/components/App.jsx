@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { Component, useState, useEffect } from 'react';
 import { Searchbar } from './Searchbar/Searchbar';
 import { getImages } from 'api/getImages';
 import { ButtonTempl } from './Button/Button';
@@ -8,77 +8,78 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Modal } from './Modal/Modal';
 
-export class App extends Component {
-  state = { currentPage: 1, api: [], isLoading: false, modalShow: false };
+export function App() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [api, setApi] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [modalShow, setModalShow] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [totalHits, setTotalHits] = useState('');
+  const [modalImage, setModalImage] = useState('');
 
-  async componentDidUpdate(_, { searchQuery: prevQuery, currentPage: prevPage, api: prevApi }) {
-    const { searchQuery, currentPage, api } = this.state;
+  useEffect(() => {
+    searchQuery &&
+      (async () => {
+        try {
+          setIsLoading(true);
+          const { hits: receivedImages, totalHits } = await getImages({
+            q: searchQuery,
+            page: currentPage,
+          });
+          console.log(receivedImages);
 
-    if (prevQuery !== searchQuery || prevPage !== currentPage) {
-      this.setState({ isLoading: true });
+          if (!receivedImages.length) {
+            return toast.error('Image not found');
+          }
 
-      try {
-        const { hits: receivedImages, totalHits } = await getImages({
-          q: searchQuery,
-          page: currentPage,
-        });
-
-        if (!receivedImages.length) {
-          return toast.error('Image not found');
+          setApi(prev => [...prev, ...receivedImages]);
+          setTotalHits(totalHits);
+        } catch (e) {
+          console.log(e);
+          return toast.error('Something go wrong');
+        } finally {
+          setIsLoading(false);
         }
+      })();
+  }, [currentPage, searchQuery]);
 
-        this.setState({
-          api: api.length === 0 ? [...receivedImages] : [...prevApi, ...receivedImages],
-          totalHits,
-        });
-      } catch (e) {
-        return toast.error('Something go wrong');
-      } finally {
-        this.setState({ isLoading: false });
-      }
-    }
-  }
-
-  querySubmit = query => {
+  const querySubmit = query => {
     if (query) {
-      const newQueryState = { searchQuery: query, currentPage: 1, api: [] };
-      this.state.searchQuery !== query ? this.setState(newQueryState) : toast.error('Same request');
+      const newQueryState = () => {
+        setSearchQuery(query);
+        setCurrentPage(1);
+        setApi([]);
+      };
+      searchQuery !== query ? newQueryState() : toast.error('Same request');
+      setApi([]);
       return;
     }
     toast.error('Input empty');
   };
 
-  pageIncrement = () => {
-    this.setState(({ currentPage: prevPage }) => ({
-      currentPage: prevPage + 1,
-    }));
+  const pageIncrement = () => {
+    setCurrentPage(prev => prev + 1);
   };
 
-  showModal = image => {
-    this.setState({ modalImage: image });
-    this.toggleModal();
+  const showModal = image => {
+    setModalImage(image);
+    toggleModal();
   };
 
-  toggleModal = () => {
-    this.setState(({ modalShow }) => ({
-      modalShow: !modalShow,
-    }));
+  const toggleModal = () => {
+    setModalShow(prev => !prev);
   };
 
-  render() {
-    const { api, isLoading, totalHits, modalShow } = this.state;
-
-    return (
-      <>
-        <Searchbar onSubmit={this.querySubmit} />
-        {api.length > 0 && <ImageGallery arrResponse={api} onClick={this.showModal} />}
-        {isLoading && <MagnifyingGlass wrapperStyle={{ marginLeft: '50%' }} />}
-        {api.length > 0 && api.length < totalHits && (
-          <ButtonTempl onClick={this.pageIncrement}>Load more</ButtonTempl>
-        )}
-        {modalShow && <Modal onClose={this.toggleModal} image={this.state.modalImage} />}
-        <ToastContainer />
-      </>
-    );
-  }
+  return (
+    <>
+      <Searchbar onSubmit={querySubmit} />
+      {api.length > 0 && <ImageGallery arrResponse={api} onClick={showModal} />}
+      {isLoading && <MagnifyingGlass wrapperStyle={{ marginLeft: '50%' }} />}
+      {api.length > 0 && api.length < totalHits && (
+        <ButtonTempl onClick={pageIncrement}>Load more</ButtonTempl>
+      )}
+      {modalShow && <Modal onClose={toggleModal} image={modalImage} />}
+      <ToastContainer />
+    </>
+  );
 }

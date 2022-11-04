@@ -1,44 +1,44 @@
-import { Component } from 'react';
+import { Component, useState } from 'react';
 import { Input, Form, FormBtn, Head } from './SearchBar.styled';
 import { HiMagnifyingGlass } from 'react-icons/hi2';
 import PropTypes from 'prop-types';
-export class Searchbar extends Component {
-  state = { inputField: '' };
 
-  onInputChange = event => {
-    this.setState({ [event.target.name]: event.currentTarget.value });
-  };
-  stateReset = () => {
-    this.setState({ inputField: '' });
+export function Searchbar({ onSubmit }) {
+  const [inputField, setInputField] = useState('');
+
+  const onInputChange = ({ target: { value } }) => {
+    setInputField(value);
   };
 
-  handleSubmit = e => {
+  const stateReset = () => {
+    setInputField('');
+  };
+
+  const handleSubmit = e => {
     e.preventDefault();
-    this.props.onSubmit(this.state.inputField);
-    this.stateReset();
+    onSubmit(inputField);
+    stateReset();
   };
 
-  render() {
-    return (
-      <Head className="searchbar">
-        <Form onSubmit={this.handleSubmit} value={this.state.inputField}>
-          <FormBtn type="submit">
-            <HiMagnifyingGlass color="#0288d1" size={22} />
-          </FormBtn>
+  return (
+    <Head className="searchbar">
+      <Form onSubmit={handleSubmit}>
+        <FormBtn type="submit">
+          <HiMagnifyingGlass color="#0288d1" size={22} />
+        </FormBtn>
 
-          <Input
-            value={this.state.inputField}
-            onChange={this.onInputChange}
-            name="inputField"
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-          />
-        </Form>
-      </Head>
-    );
-  }
+        <Input
+          value={inputField}
+          onChange={onInputChange}
+          name="inputField"
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+        />
+      </Form>
+    </Head>
+  );
 }
 
 Searchbar.propTypes = {
